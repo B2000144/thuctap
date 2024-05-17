@@ -6,13 +6,13 @@ const middlewareController = {
       const accessToken = token; // bỏ khoảng trắng và lấy từ kí tự số 1
       jwt.verify(accessToken, process.env.JWT_ACCESS_KEY, (err, user) => {
         if (err) {
-          return res.status(403).json("token is not valid");
+          return res.status(403).json("token không tồn tại");
         }
         req.user = user;
         next();
       });
     } else {
-      return res.status(403).json("you are not authenticated");
+      return res.status(403).json("bạn chưa được xác thực");
     }
   },
   verifyTokenAndAdminAuth: (req, res, next) => {
@@ -21,7 +21,7 @@ const middlewareController = {
       if (req.user.id == req.params.id || req.user.admin) {
         next();
       } else {
-        res.status(403).json("you are not allowed to delete other");
+        res.status(403).json("bạn đã xóa tài khoản");
       }
     });
   },

@@ -48,11 +48,11 @@ var ACCOUNT = new Schema({
   ],
   IS_ACTIVE: {
     type: Boolean,
-    default: true,
+    default: false,
   },
   IS_LOCK: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   USER_ID: {
     type: Schema.Types.ObjectId,

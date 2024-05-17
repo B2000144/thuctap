@@ -2,6 +2,8 @@ const account = require("../models/account");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { randomCode } = require("../utils/index");
+const UserService = require("../services/user.service");
 const {
   registerUserSchema,
   loginUserSchema,
@@ -17,12 +19,14 @@ const authController = {
         USER_NAME: req.body.user_name,
       });
       if (existingAccount) {
-        return res.status(400).json({ message: "username already exists" });
+        return res
+          .status(400)
+          .json({ message: "tên đăng nhập đã tồn tại trên hệ thống" });
       }
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(req.body.password, salt);
       //create a new user
-      const newUser = new User({
+      const payload = {
         FIRST_NAME: req.body.first_name,
         LAST_NAME: req.body.last_name,
         EMAIL_USER: req.body.email_user,
@@ -32,17 +36,25 @@ const authController = {
         MIDDLE_NAME: req.body.middle_name,
         FULL_NAME: req.body.full_name,
         AVT_URL: req.body.avt,
-      });
-      const savedUser = await newUser.save();
+      };
+      const newUser = await UserService.addUser(payload);
+
       // create a new account link it to the user
-      const newAccount = new account({
+      const payloadAccount = {
         USER_NAME: req.body.user_name,
         PASSWORD: hashedPassword,
-        USER_ID: savedUser._id,
-      });
+        USER_ID: newUser._id,
+      };
       // save the account
-      const savedAccount = await newAccount.save();
-      res.status(201).json({ account: savedAccount, user: savedUser });
+      const newAccount = await UserService.addAccount(payloadAccount);
+
+      const newCodeActive = await UserService.addCodeActive(
+        newUser._id,
+        randomCode(),
+        "ACTIVE",
+        120
+      );
+      res.status(201).json({ account: newAccount, user: newUser });
     } catch (e) {
       res.status(500).json({
         message: e.message,
@@ -63,7 +75,7 @@ const authController = {
       });
       if (!loginAccount) {
         return res.status(404).json({
-          message: "wrong username",
+          message: "sai tên đăng nhập",
         });
       }
       const validPassword = await bcrypt.compare(
@@ -72,7 +84,7 @@ const authController = {
       );
       if (!validPassword) {
         return res.status(400).json({
-          message: "wrong password",
+          message: "sai mật khẩu",
         });
       }
       if (loginAccount && validPassword) {
