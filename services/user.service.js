@@ -4,13 +4,11 @@ const ObjectId = require("mongoose").Types.ObjectId;
 class UserService {
   static addUser = async (payload) => {
     const newUser = new UserModel(payload);
-    const savedUser = await newUser.save();
     return newUser;
   };
 
   static addAccount = async (payload) => {
     const newAccount = new AccountModel(payload);
-    const savedAccount = await newAccount.save();
     return newAccount;
   };
 
